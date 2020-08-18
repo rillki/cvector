@@ -22,6 +22,8 @@
  *  - vector_length
  *  - vector_capacity
  *  - vector_availableSpace
+ *  - vector_memory
+ *  - vector_isEmpty
  *
  * private vector functions:
  *  - internal_vector_resize
@@ -31,9 +33,7 @@
  *  - internal_gswap
  *
  *
- * TODO: add element size!!!!
- *  - vector_isEmpty
- *  - vector_byteSize aka. vector_memory
+ * TODO:
  *  - vector_constGet
  *  - vector_clear
  *  - vector_copy
@@ -73,6 +73,7 @@
 #define mvector_length(v) vector_length(&v)
 #define mvector_capacity(v) vector_capacity(&v)
 #define mvector_availableSpace(v) vector_availableSpace(&v)
+#define mvector_memory(v) vector_memory(&v)
 #define mvector_isEmpty(v) vector_isEmpty(&v)
 
 /* ****** VECTOR STRUCTURES ****** */
@@ -80,14 +81,17 @@
 // vector status
 typedef enum vectorStatus {
     // if fails to initialize
-    vectorStatus_error_init = -4,
-    
+    vectorStatus_error_init = -5,
+   
     // if fails to execute a vector function
-    vectorStatus_error_operation = -3,
+    vectorStatus_error_operation = -4,
     
     // if fails to resize a vector
-    vectorStatus_error_resize = -2,
+    vectorStatus_error_resize = -3,
     
+    // if vector element does not exist
+    vectorStatus_error_elementDoesntExist = -2,
+
     // if vector is NULL
     vectorStatus_error_null = -1,
 
@@ -113,28 +117,28 @@ typedef struct vector {
  *  params:
  *	vector* v => vector instance
 */
-void vector_create(vector* v, size_t elementSize);
+void vector_create(vector* v, const size_t elementSize);
 
 /* reserves additional memory for number of elements
  *  params:
  *	vector* v  => vector instance
  *	size_t num => number of elements
 */
-void vector_reserve(vector* v, size_t num);
+void vector_reserve(vector* v, const size_t num);
 
 /* sets vector length to specified size
  *  params:
  *	vector* v     => vector instance
  *	size_t length => custom vector length
 */
-void vector_setLength(vector* v, size_t length);
+void vector_setLength(vector* v, const size_t length);
 
 /* push an item at the end of vector
  *  params:
  *	vector* v  => vector instance
  *	void* item => value
 */
-void vector_push(vector* v, void* item);
+void vector_push(vector* v, const void* item);
 
 /* insert an item at certain index
  *  params:
@@ -142,7 +146,7 @@ void vector_push(vector* v, void* item);
  *	size_t index => index
  *	void* item   => value
 */
-void vector_insert(vector* v, size_t index, void* item);
+void vector_insert(vector* v, const size_t index, const void* item);
 
 /* pop the last element (does not realloc the vector)
  *  params:
@@ -155,7 +159,7 @@ void vector_pop(vector* v);
  *	vector* v    => vector instance
  *	size_t index => index
 */
-void vector_remove(vector* v, size_t index);
+void vector_remove(vector* v, const size_t index);
 
 /* shrinks the size of vector to current length+1 (reallocs the vector)
  *  params:
@@ -180,7 +184,7 @@ void vector_clear(vector* v);
  *	vector* v    => vector instance
  *	size_t index => index
 */
-void* vector_get(vector* v, size_t index);
+void* vector_get(vector* v, const size_t index);
 
 /* copies array data to vector (vector is resized to array length), returns vectorStatus value
  *  params:
@@ -188,7 +192,7 @@ void* vector_get(vector* v, size_t index);
  *	void* arr     => array data
  *	size_t length => array length
 */
-void vector_assignArr(vector* v, void* arr, size_t length);
+void vector_assignArr(vector* v, const void* arr, const size_t length);
 
 /* adds array data to vector (additional space is reserved, total: v->length + arr length), returns vectorStatus value
  *  params: 
@@ -196,55 +200,61 @@ void vector_assignArr(vector* v, void* arr, size_t length);
  *	void* arr     => array
  *	size_t length => array length
 */
-void vector_pushArr(vector* v, void* arr, size_t length);
+void vector_pushArr(vector* v, const void* arr, const size_t length);
 
 /* returns a vector status code (check out vectorStatus enum)
  *  params:
  *	vector* v => vector instance
 */
-vectorStatus vector_status_code(vector* v);
+vectorStatus vector_status_code(const vector* v);
 
 /* returns a vector status message of vector status code
  *  params:
  *	vector* v => vector instance
 */
-char* vector_status_msg(vector* v);
+char* vector_status_msg(const vector* v);
 
 /* prints vector status message to stderr
  *  params:
  *	vector* v => vector instance
 */
-void vector_status_msg_print(vector* v);
+void vector_status_msg_print(const vector* v);
 
 /* prints vector error message only to stderr
  *  params:
  *	vector* v => vector instance
 */
-void vector_status_msg_print_error(vector* v);
+void vector_status_msg_print_error(const vector* v);
 
 /* returns vector length
  *  params:
  *	vector* v => vector instance
 */
-size_t vector_length(vector* v);
+size_t vector_length(const vector* v);
 
 /* returns vector capacity
  *  params:
  *	vector* v => vector instance
 */
-size_t vector_capacity(vector* v);
+size_t vector_capacity(const vector* v);
 
 /* returns vector available space (capacity - length)
  *  params:
  *	vector* v => vector instance
 */
-size_t vector_availableSpace(vector* v);
+size_t vector_availableSpace(const vector* v);
+
+/* returns allocated memory in bytes
+ *  params:
+ *	vector* v => vector instance
+*/
+size_t vector_memory(const vector* v);
 
 /* returns true if vector is empty
  *  params:
  *	vector* v => vector instance
 */
-bool vector_isEmpty(vector* v);
+bool vector_isEmpty(const vector* v);
 
 /* ****** PRIVATE VECTOR METHODS FOR INTERNAL USE ONLY ****** */
 
@@ -253,14 +263,14 @@ bool vector_isEmpty(vector* v);
  *	vector* v   => vector instance
  *	size_t size => new vector length
 */
-static void internal_vector_resize(vector* v, size_t size);
+static void internal_vector_resize(vector* v, const size_t size);
 
 /* return vector offset
  *  params:
  *	vector* v => vector instance
  *	size_t index => index
 */
-static void* internal_vector_offset(vector* v, size_t index);
+static void* internal_vector_offset(const vector* v, const size_t index);
 
 /* assigns data at index 
  *  params:
@@ -268,14 +278,14 @@ static void* internal_vector_offset(vector* v, size_t index);
  *	size_t index => index
  *	void* item => element
 */
-static void internal_vector_assign(vector* v, size_t index, void* item);
+static void internal_vector_assign(vector* v, const size_t index, const void* item);
 
 /* checks if index is within vector bounds 0..length-1
  *  params:
  *	vector* v    => vector instance
  *	size_t index => index
 */
-static bool internal_vector_checkIndexBounds(vector*v, size_t index);
+static bool internal_vector_checkIndexBounds(vector *v, const size_t index);
 
 /* checks if vector->data = NULL
  *  params: 
