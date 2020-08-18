@@ -53,7 +53,7 @@
 
 /* ****** MACROS ****** */
 
-#define mvector_create(v) vector v; vector_create(&v)
+#define mvector_create(v, type) vector v; vector_create(&v, sizeof(type))
 #define mvector_reserve(v, num) vector_reserve(&v, num)
 #define mvector_setLength(v, length) vector_setLength(&v, length)
 #define mvector_push(v, item) vector_push(&v, (void*)(&item))

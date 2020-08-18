@@ -100,7 +100,7 @@ void* vector_get(vector* v, const size_t index) {
 }
 
 void vector_assignArr(vector* v, const void* arr, const size_t length) {
-    if(arr == NULL || length <= 0 || internal_vector_isNULL(v)) {
+    if(arr == NULL || length == 0 || internal_vector_isNULL(v)) {
 	v->status = vectorStatus_error_null;
     }
     
