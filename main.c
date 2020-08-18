@@ -26,7 +26,7 @@ int main() {
     mvector_insert(v, 4, z);
 
     for(size_t i = 0; i < mvector_length(v); i++) {
-	printf("%f ", mvector_get(v, i, double));
+	printf("%f ", mvector_constGet(v, i, double));
     }
     printf("\n\n");
     

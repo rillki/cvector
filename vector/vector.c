@@ -99,6 +99,17 @@ void* vector_get(vector* v, const size_t index) {
     return NULL;
 }
 
+const void* vector_constGet(vector* v, const size_t index) {
+    if(internal_vector_isNULL(v)) { return NULL; }
+
+    if(internal_vector_checkIndexBounds(v, index)) {
+	return internal_vector_offset(v, index);
+    }
+
+    v->status = vectorStatus_error_elementDoesntExist;
+    return NULL;
+}
+
 void vector_assignArr(vector* v, const void* arr, const size_t length) {
     if(arr == NULL || length == 0 || internal_vector_isNULL(v)) {
 	v->status = vectorStatus_error_null;
