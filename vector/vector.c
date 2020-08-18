@@ -138,7 +138,7 @@ const void* vector_constGet(vector* v, const size_t index) {
     return NULL;
 }
 
-void vector_assignArr(vector* v, const void* arr, const size_t length) {
+void vector_copyArr(vector* v, const void* arr, const size_t length) {
     if(arr == NULL || length == 0 || internal_vector_errorFound(v)) {
 	v->status = vectorStatus_error_null;
 	return;
@@ -167,6 +167,22 @@ void vector_pushArr(vector* v, const void* arr, const size_t length) {
 
     v->status = vectorStatus_success;
 } 
+
+// stoped here.... test vector_copy
+void vector_copy(vector* vdest, const vector* vsrc) {
+    if(internal_vector_errorFound(vdest) || internal_vector_errorFound(vsrc)) {
+	vdest->status = vsrc->status = vectorStatus_error_operation;
+	return;
+    }
+    
+    vdest->elementSize = vsrc->elementSize;
+    vector_setLength(vdest, vsrc->length);
+    vdest->length = vsrc->length;
+
+    memmove(vdest->data, vsrc->data, vsrc->length * vsrc->elementSize);
+    
+    vdest->status = vsrc->status = vectorStatus_success;
+}
 
 vectorStatus vector_status_code(const vector* v) {
     return v->status;

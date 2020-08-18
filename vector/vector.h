@@ -15,8 +15,11 @@
  *  - vector_free
  *  - vector_get
  *  - vector_constGet
- *  - vector_assignArr
+ *  - vector_copyArr
  *  - vector_pushArr
+ *  - // vector_copy
+ *  - // vector_pushCopy
+ *  - // vector_move
  *  - vector_status_code
  *  - vector_status_msg
  *  - vector_status_msg_print
@@ -37,8 +40,6 @@
  *
  *
  * TODO:
- *  - vector_copy
- *  - vector_move
  *  - vector_swap ?
  *  - vector_gethead or getbuffer
 */
@@ -70,7 +71,7 @@
 #define mvector_status_msg(v) vector_status_msg(&v)
 #define mvector_status_msg_print(v) vector_status_msg(&v)
 #define mvector_status_msg_print_error(v) vector_status_msg_print_error(&v)
-#define mvector_assignArr(v, arr, length) vector_assignArr(&v, (void*)arr, length)
+#define mvector_copyArr(v, arr, length) vector_copyArr(&v, (void*)arr, length)
 #define mvector_pushArr(v, arr, length) vector_pushArr(&v, (void*)arr, length)
 #define mvector_length(v) vector_length(&v)
 #define mvector_capacity(v) vector_capacity(&v)
@@ -201,7 +202,7 @@ const void* vector_constGet(vector* v, const size_t index);
  *	void* arr     => array data
  *	size_t length => array length
 */
-void vector_assignArr(vector* v, const void* arr, const size_t length);
+void vector_copyArr(vector* v, const void* arr, const size_t length);
 
 /* adds array data to vector (additional space is reserved, total: v->length + arr length), returns vectorStatus value
  *  params: 
@@ -210,6 +211,27 @@ void vector_assignArr(vector* v, const void* arr, const size_t length);
  *	size_t length => array length
 */
 void vector_pushArr(vector* v, const void* arr, const size_t length);
+
+/* copies source vector contents to destination: resizes destination to source vector size (does not free source vector)
+ *  params:
+ *	vector* vdest => destination vector where to copy data
+ *	vector* vsrc  => source vector to copy data from
+*/
+void vector_copy(vector* vdest, const vector* vsrc);
+
+/* pushes source vector contents to destination vector (does not free source vector)
+ *  params:
+ *	vector* vdest => destination vector where to copy data
+ *	vector* vsrc  => source vector to copy data from
+*/
+void vector_pushCopy(vector* vdest, const vector* vsrc);
+
+/* moves source vector contents to destination vector (frees source vector)
+ *  params:
+ *	vector* vdest => destination vector where to move data
+ *	vector* vsrc  => source vector
+*/
+void vector_move(vector* vdest, vector* vsrc);
 
 /* returns a vector status code (check out vectorStatus enum)
  *  params:
