@@ -1,7 +1,7 @@
 # CVector
 A simple to use generic Vector library for C programming language.
 
-### Usage 
+### How do I use it? 
 coming soon...
 
 ### LICENSE
