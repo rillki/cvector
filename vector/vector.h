@@ -11,8 +11,10 @@
  *  - vector_pop
  *  - vector_remove
  *  - vector_shrink
+ *  - vector_clear
  *  - vector_free
  *  - vector_get
+ *  - vector_constGet
  *  - vector_assignArr
  *  - vector_pushArr
  *  - vector_status_code
@@ -30,12 +32,11 @@
  *  - internal_vector_offset
  *  - internal_vector_assign
  *  - internal_vector_checkIndexBounds
+ *  - internal_vector_errorFound
  *  - internal_gswap
  *
  *
  * TODO:
- *  - vector_constGet
- *  - vector_clear
  *  - vector_copy
  *  - vector_move
  *  - vector_swap ?
@@ -64,6 +65,7 @@
 #define mvector_free(v) vector_free(&v)
 #define mvector_clear(v) vector_clear(&v)
 #define mvector_get(v, index, type) *((type*)vector_get(&v, index))
+#define mvector_constGet(v, index, type) *((type*)vector_constGet(&v, index))
 #define mvector_status_code(v) vector_status_code(&v)
 #define mvector_status_msg(v) vector_status_msg(&v)
 #define mvector_status_msg_print(v) vector_status_msg(&v)
@@ -186,6 +188,13 @@ void vector_clear(vector* v);
 */
 void* vector_get(vector* v, const size_t index);
 
+/* returns const vector element at an index
+ *  params: 
+ *	vector* v => vector instance
+ *	size_t index => index
+*/
+const void* vector_constGet(vector* v, const size_t index);
+
 /* copies array data to vector (vector is resized to array length), returns vectorStatus value
  *  params:
  *	vector* v     => vector instance
@@ -287,11 +296,11 @@ static void internal_vector_assign(vector* v, const size_t index, const void* it
 */
 static bool internal_vector_checkIndexBounds(vector *v, const size_t index);
 
-/* checks if vector->data = NULL
- *  params: 
- *	vector* v => vector instance
+/* checks vector for errors conditions 
+ *  params:
+ *	const vector* v => vector instance
 */
-static bool internal_vector_isNULL(vector* v);
+static bool internal_vector_errorFound(const vector* v);
 
 /* generic swap
  *  params:
