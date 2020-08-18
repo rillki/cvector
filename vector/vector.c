@@ -15,19 +15,28 @@ void vector_create(vector* v, const size_t elementSize) {
 }
 
 void vector_reserve(vector* v, const size_t num) {
-    if(internal_vector_isNULL(v)) { return; }
+    if(internal_vector_errorFound(v)) { 
+	v->status = vectorStatus_error_operation;
+	return;
+    }
     
     internal_vector_resize(v, v->capacity + num);
 }
 
 void vector_setLength(vector* v, const size_t length) {
-    if(internal_vector_isNULL(v)) { return; }
+    if(internal_vector_errorFound(v)) { 
+	v->status = vectorStatus_error_operation;
+	return;
+    }
 
     internal_vector_resize(v, length);
 }
 
 void vector_push(vector* v, const void* item) {
-    if(internal_vector_isNULL(v)) { return; }
+    if(internal_vector_errorFound(v)) { 
+	v->status = vectorStatus_error_operation;
+	return;
+    }
 
     if(v->length >= v->capacity) {
 	internal_vector_resize(v, v->capacity*VECTOR_GROWTH_RATE);
@@ -37,7 +46,10 @@ void vector_push(vector* v, const void* item) {
 }
 
 void vector_insert(vector* v, const size_t index, const void* item) {
-    if(internal_vector_isNULL(v)) { return; }
+    if(internal_vector_errorFound(v)) { 
+	v->status = vectorStatus_error_operation;
+	return;
+    }
 
     if(internal_vector_checkIndexBounds(v, index)) {
 	internal_vector_assign(v, index, item);
@@ -45,7 +57,10 @@ void vector_insert(vector* v, const size_t index, const void* item) {
 }
 
 void vector_pop(vector* v) {
-    if(internal_vector_isNULL(v)) { return; }
+    if(internal_vector_errorFound(v)) {
+	v->status = vectorStatus_error_operation;
+	return;
+    }
 
     if(v->length > 0) {
 	v->length--;
@@ -53,7 +68,10 @@ void vector_pop(vector* v) {
 }
 
 void vector_remove(vector* v, const size_t index) {
-    if(internal_vector_isNULL(v)) { return; }
+    if(internal_vector_errorFound(v)) { 
+	v->status = vectorStatus_error_operation;
+	return;
+    }
 
     if(internal_vector_checkIndexBounds(v, index)) {
 	internal_gswap(internal_vector_offset(v, index), internal_vector_offset(v, v->length-1), v->elementSize);
@@ -62,14 +80,17 @@ void vector_remove(vector* v, const size_t index) {
 }
 
 void vector_shrink(vector* v) {
-    if(internal_vector_isNULL(v)) { return; }
+    if(internal_vector_errorFound(v)) { 
+	v->status = vectorStatus_error_operation;
+	return;
+    }
 
     internal_vector_resize(v, v->length+1);
 }
 
 void vector_free(vector* v) {
-    if(internal_vector_isNULL(v)) {
-	v->status = vectorStatus_freed;
+    if(internal_vector_errorFound(v)) {
+	v->status = vectorStatus_error_operation;
 	return;
     }
     
@@ -81,7 +102,8 @@ void vector_free(vector* v) {
 }
 
 void vector_clear(vector* v) {
-    if(internal_vector_isNULL(v)) {
+    if(internal_vector_errorFound(v)) {
+	v->status = vectorStatus_error_operation;
 	return;
     }
 
@@ -89,7 +111,10 @@ void vector_clear(vector* v) {
 }
 
 void* vector_get(vector* v, const size_t index) {
-    if(internal_vector_isNULL(v)) { return NULL; }
+    if(internal_vector_errorFound(v)) {
+	v->status = vectorStatus_error_operation;
+	return NULL;
+    }
 
     if(internal_vector_checkIndexBounds(v, index)) {
 	return internal_vector_offset(v, index);
@@ -100,7 +125,10 @@ void* vector_get(vector* v, const size_t index) {
 }
 
 const void* vector_constGet(vector* v, const size_t index) {
-    if(internal_vector_isNULL(v)) { return NULL; }
+    if(internal_vector_errorFound(v)) { 
+	v->status = vectorStatus_error_operation;
+	return NULL;
+    }
 
     if(internal_vector_checkIndexBounds(v, index)) {
 	return internal_vector_offset(v, index);
@@ -111,8 +139,9 @@ const void* vector_constGet(vector* v, const size_t index) {
 }
 
 void vector_assignArr(vector* v, const void* arr, const size_t length) {
-    if(arr == NULL || length == 0 || internal_vector_isNULL(v)) {
+    if(arr == NULL || length == 0 || internal_vector_errorFound(v)) {
 	v->status = vectorStatus_error_null;
+	return;
     }
     
     vector_setLength(v, length);
@@ -123,8 +152,9 @@ void vector_assignArr(vector* v, const void* arr, const size_t length) {
 }
 
 void vector_pushArr(vector* v, const void* arr, const size_t length) {
-    if(arr == NULL || length == 0 || internal_vector_isNULL(v)) {
+    if(arr == NULL || length == 0 || internal_vector_errorFound(v)) {
 	v->status = vectorStatus_error_null;
+	return;
     }
     
     if(vector_availableSpace(v) < length) {
@@ -221,7 +251,7 @@ static void internal_vector_assign(vector* v, const size_t index, const void* it
 }
 
 static bool internal_vector_checkIndexBounds(vector* v, const size_t index) {
-    if(index >= 0 && index < v->length) {
+    if(index < v->length) {
 	return true;
     }
     
@@ -229,9 +259,8 @@ static bool internal_vector_checkIndexBounds(vector* v, const size_t index) {
     return false;
 }
 
-static bool internal_vector_isNULL(vector* v) {
-    if(v->data == NULL) {
-	v->status = vectorStatus_error_null;
+static bool internal_vector_errorFound(const vector* v) {
+    if(v == NULL || v->data == NULL || v->elementSize == 0) {
 	return true;
     }
 

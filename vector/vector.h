@@ -32,11 +32,11 @@
  *  - internal_vector_offset
  *  - internal_vector_assign
  *  - internal_vector_checkIndexBounds
+ *  - internal_vector_errorFound
  *  - internal_gswap
  *
  *
  * TODO:
- *  - vector_constGet
  *  - vector_copy
  *  - vector_move
  *  - vector_swap ?
@@ -296,11 +296,11 @@ static void internal_vector_assign(vector* v, const size_t index, const void* it
 */
 static bool internal_vector_checkIndexBounds(vector *v, const size_t index);
 
-/* checks if vector->data = NULL
- *  params: 
- *	vector* v => vector instance
+/* checks vector for errors conditions 
+ *  params:
+ *	const vector* v => vector instance
 */
-static bool internal_vector_isNULL(vector* v);
+static bool internal_vector_errorFound(const vector* v);
 
 /* generic swap
  *  params:
