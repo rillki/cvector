@@ -115,8 +115,9 @@ typedef struct vector {
     size_t capacity;      // vector total capacity
     size_t length;        // vector current length
     size_t elementSize;   // element size
-    void* data;           // vector data
     vectorStatus status;  // vector status
+    
+    void* data;           // vector data
 } vector;
 
 /* ****** PUBLIC VECTOR METHODS ****** */
