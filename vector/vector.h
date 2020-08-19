@@ -124,7 +124,8 @@ typedef struct vector {
 
 /* initializes a vector 
  *  params:
- *	vector* v => vector instance
+ *	vector* v          => vector instance
+ *	size_t elementSize => sizeof(type)
 */
 void vector_create(vector* v, const size_t elementSize);
 
