@@ -93,7 +93,11 @@ void vector_free(vector* v) {
 	v->status = vectorStatus_error_operation;
 	return;
     }
-    
+
+    if(v->status == vectorStatus_freed) {
+	return;
+    }
+
     free(v->data);
     
     v->data = NULL;
@@ -161,17 +165,15 @@ void vector_pushArr(vector* v, const void* arr, const size_t length) {
 	vector_reserve(v, length);
     }
     
-    for(size_t i = 0; i < length; i++) {
-	vector_push(v, (arr + i * v->elementSize));
-    }
-
+    memmove((v->data + v->length * v->elementSize), arr, (length * v->elementSize));
+    
+    v->length += length;
     v->status = vectorStatus_success;
-} 
+}
 
-// stoped here.... test vector_copy
 void vector_copy(vector* vdest, const vector* vsrc) {
-    if(internal_vector_errorFound(vdest) || internal_vector_errorFound(vsrc)) {
-	vdest->status = vsrc->status = vectorStatus_error_operation;
+    if(vdest == NULL || vsrc == NULL || internal_vector_errorFound(vdest) || internal_vector_errorFound(vsrc)) {
+	vdest->status = vectorStatus_error_operation;
 	return;
     }
     
@@ -181,7 +183,65 @@ void vector_copy(vector* vdest, const vector* vsrc) {
 
     memmove(vdest->data, vsrc->data, vsrc->length * vsrc->elementSize);
     
-    vdest->status = vsrc->status = vectorStatus_success;
+    vdest->status = vectorStatus_success;
+}
+
+void vector_pushCopy(vector* vdest, const vector* vsrc) {
+    if(vdest == NULL || vsrc == NULL || internal_vector_errorFound(vdest) || internal_vector_errorFound(vsrc)) {
+	vdest->status = vectorStatus_error_operation;
+	return;
+    }
+    
+    if(vdest->elementSize != vsrc->elementSize) {
+	vdest->status = vectorStatus_error_incompatibleTypes;
+	return;
+    }
+
+    if(vector_availableSpace(vdest) < vsrc->length) {
+	vector_reserve(vdest, vsrc->length);
+    }
+    
+    memmove((vdest->data + vdest->length * vdest->elementSize), vsrc->data, vsrc->length * vsrc->elementSize);
+    vdest->length += vsrc->length;
+}
+
+void vector_move(vector* vdest, vector* vsrc) {
+    if(vdest == NULL || vsrc == NULL || internal_vector_errorFound(vdest) || internal_vector_errorFound(vsrc)) {
+	vdest->status = vsrc->status = vectorStatus_error_operation;
+	return;
+    }
+
+    if(vdest->status != vectorStatus_freed) {
+	vector_free(vdest);
+    }
+
+    vdest->data = vsrc->data;
+    vsrc->data = NULL;
+    vsrc->status = vectorStatus_freed;
+
+    vdest->length = vsrc->length;
+    vdest->capacity = vsrc->capacity;
+    vdest->elementSize = vsrc->elementSize;
+    vdest->status = vectorStatus_success;
+
+    vector_free(vsrc);
+}
+
+void vector_swap(vector* v1, vector* v2) {
+    if(v1 == NULL || v2 == NULL) {
+	v1->status = v2->status = vectorStatus_error_null;
+	return;
+    }
+
+    internal_gswap(&v1->length, &v2->length, sizeof(size_t));
+    internal_gswap(&v1->capacity, &v2->capacity, sizeof(size_t));
+    internal_gswap(&v1->elementSize, &v2->elementSize, sizeof(size_t));
+
+    void* temp = v1->data;
+    v1->data = v2->data;
+    v2->data = temp;
+    
+    v1->status = v2->status = vectorStatus_success;
 }
 
 vectorStatus vector_status_code(const vector* v) {
@@ -191,13 +251,15 @@ vectorStatus vector_status_code(const vector* v) {
 char* vector_status_msg(const vector* v) {
     switch(v->status) {
 	case vectorStatus_error_init:
-	    return "VECTOR STATUS MSG(-5): Failed to initialize the vector!\n";
+	    return "VECTOR STATUS MSG(-6): Failed to initialize the vector!\n";
 	case vectorStatus_error_operation:
-	    return "VECTOR STATUS MSG(-4): Failed to perform a vector function operation.\n";
+	    return "VECTOR STATUS MSG(-5): Failed to perform a vector function operation.\n";
 	case vectorStatus_error_resize:
-	    return "VECTOR STATUS MSG(-3): Failed to resize the vector!\n";
+	    return "VECTOR STATUS MSG(-4): Failed to resize the vector!\n";
 	case vectorStatus_error_elementDoesntExist:
-	    return "VECTOR STATUS MSG(-2): Vector element does not exist!\n";
+	    return "VECTOR STATUS MSG(-3): Vector element does not exist!\n";
+	case vectorStatus_error_incompatibleTypes:
+	    return "VECTOR STATUS MSG(-2): Incompatible vector types: cannot push one onto another!\n";
 	case vectorStatus_error_null:
 	    return "VECTOR STATUS MSG(-1): Vector is NULL!\n";
 	case vectorStatus_success:
@@ -219,6 +281,10 @@ void vector_status_msg_print_error(const vector* v) {
     }
 
     fprintf(stderr, "\n%s\n", vector_status_msg(v));
+}
+
+void* vector_getHead(const vector* v) {
+    return v->data;
 }
 
 size_t vector_length(const vector* v) {
@@ -263,7 +329,7 @@ static void* internal_vector_offset(const vector* v, const size_t index) {
 }
 
 static void internal_vector_assign(vector* v, const size_t index, const void* item) {
-    memcpy(internal_vector_offset(v, index), item, v->elementSize);
+    memmove(internal_vector_offset(v, index), item, v->elementSize);
 }
 
 static bool internal_vector_checkIndexBounds(vector* v, const size_t index) {

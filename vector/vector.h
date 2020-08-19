@@ -17,13 +17,15 @@
  *  - vector_constGet
  *  - vector_copyArr
  *  - vector_pushArr
- *  - // vector_copy
- *  - // vector_pushCopy
- *  - // vector_move
+ *  - vector_copy
+ *  - vector_pushCopy
+ *  - vector_move
+ *  - vector_swap
  *  - vector_status_code
  *  - vector_status_msg
  *  - vector_status_msg_print
  *  - vector_status_msg_print_error
+ *  - vector_getHead
  *  - vector_length
  *  - vector_capacity
  *  - vector_availableSpace
@@ -37,11 +39,6 @@
  *  - internal_vector_checkIndexBounds
  *  - internal_vector_errorFound
  *  - internal_gswap
- *
- *
- * TODO:
- *  - vector_swap ?
- *  - vector_gethead or getbuffer
 */
 
 #include <stdio.h>
@@ -73,6 +70,11 @@
 #define mvector_status_msg_print_error(v) vector_status_msg_print_error(&v)
 #define mvector_copyArr(v, arr, length) vector_copyArr(&v, (void*)arr, length)
 #define mvector_pushArr(v, arr, length) vector_pushArr(&v, (void*)arr, length)
+#define mvector_copy(v, s) vector_copy(&v, &s)
+#define mvector_pushCopy(v, s) vector_pushCopy(&v, &s)
+#define mvector_move(v, s) vector_move(&v, &s)
+#define mvector_swap(v, s) vector_swap(&v, &s)
+#define mvector_getHead(v) vector_getHead(&v)
 #define mvector_length(v) vector_length(&v)
 #define mvector_capacity(v) vector_capacity(&v)
 #define mvector_availableSpace(v) vector_availableSpace(&v)
@@ -84,16 +86,19 @@
 // vector status
 typedef enum vectorStatus {
     // if fails to initialize
-    vectorStatus_error_init = -5,
+    vectorStatus_error_init = -6,
    
     // if fails to execute a vector function
-    vectorStatus_error_operation = -4,
+    vectorStatus_error_operation = -5,
     
     // if fails to resize a vector
-    vectorStatus_error_resize = -3,
+    vectorStatus_error_resize = -4,
     
     // if vector element does not exist
-    vectorStatus_error_elementDoesntExist = -2,
+    vectorStatus_error_elementDoesntExist = -3,
+
+    // if someone tries to push vector of one type onto vector of another type: v(int).push[ v(char*) ] => incompatible
+    vectorStatus_error_incompatibleTypes = -2,
 
     // if vector is NULL
     vectorStatus_error_null = -1,
@@ -233,6 +238,13 @@ void vector_pushCopy(vector* vdest, const vector* vsrc);
 */
 void vector_move(vector* vdest, vector* vsrc);
 
+/* swaps two vectors 
+ *  params:
+ *	vector* v1
+ *	vector* v2
+*/
+void vector_swap(vector* v1, vector* v2);
+
 /* returns a vector status code (check out vectorStatus enum)
  *  params:
  *	vector* v => vector instance
@@ -256,6 +268,12 @@ void vector_status_msg_print(const vector* v);
  *	vector* v => vector instance
 */
 void vector_status_msg_print_error(const vector* v);
+
+/* returns a void pointer to the begining of vector data
+ *  params:
+ *	vector* v => vector instance
+*/
+void* vector_getHead(const vector* v);
 
 /* returns vector length
  *  params:
