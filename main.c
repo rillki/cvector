@@ -8,11 +8,14 @@ int main() {
 
     char* h[] = {"hello world!", "apple", "orange", "rasbery", "moon", "sun", "earth", "circle", "radius"};
 
+    mvector_pushVal(v, "americano", char*);
     mvector_push(v, h[1]);
     mvector_push(v, h[2]);
     mvector_push(v, h[3]);
     mvector_push(v, h[4]);
 
+    mvector_insertVal(v, 2, "italiano", char*);
+    
     mvector_push(s, h[5]);
     mvector_push(s, h[6]);
     mvector_push(s, h[7]);

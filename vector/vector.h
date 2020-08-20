@@ -57,6 +57,8 @@
 #define mvector_setLength(v, length) vector_setLength(&v, length)
 #define mvector_push(v, item) vector_push(&v, (void*)(&item))
 #define mvector_insert(v, index, item) vector_insert(&v, index, (void*)(&item))
+#define mvector_pushVal(v, val, type); { type x = val; vector_push(&v, (void*)(&x)); }
+#define mvector_insertVal(v, index, val, type); { type x = val; vector_insert(&v, index, (void*)(&x)); }
 #define mvector_pop(v) vector_pop(&v)
 #define mvector_remove(v, index) vector_remove(&v, index)
 #define mvector_shrink(v) vector_shrink(&v)
